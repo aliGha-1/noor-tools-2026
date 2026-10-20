@@ -46,10 +46,12 @@ jobs:
           gradle-version: "8.9"
 
       - name: Set Up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ''
 
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Android APK
         run: gradle -p NOOR_TOOLS_ANDROID_PROJECT assembleDebug
