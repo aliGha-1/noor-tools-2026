@@ -1,0 +1,62 @@
+name: Build Noor Tools APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Project Files
+        uses: actions/checkout@v4
+
+      - name: Find and Extract Android Project
+        shell: bash
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -iname "NOOR_TOOLS_ANDROID_PROJECT.zip" -print -quit)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: Android project ZIP file was not found."
+            exit 1
+          fi
+
+          unzip -o "$ZIP_FILE" -d .
+
+          if [ ! -f "NOOR_TOOLS_ANDROID_PROJECT/app/build.gradle.kts" ]; then
+            echo "ERROR: Android project files were not found."
+            exit 1
+          fi
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Set Up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Build Android APK
+        run: gradle -p NOOR_TOOLS_ANDROID_PROJECT assembleDebug
+
+      - name: Save APK File
+        uses: actions/upload-artifact@v4
+        with:
+          name: Noor-Tools-APK
+          path: NOOR_TOOLS_ANDROID_PROJECT/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
